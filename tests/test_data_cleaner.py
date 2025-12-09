@@ -122,7 +122,7 @@ class TestDataCleaner(unittest.TestCase):
         df = make_sample_df()
         with self.assertRaises(KeyError):
             cleaner.drop_invalid_rows(df, columns=["does_not_exist"])
-            
+
 
     def test_trim_strings_strips_whitespace_without_changing_other_columns(self):
         """Test que verifica que el método trim_strings elimina correctamente los espacios
@@ -136,6 +136,24 @@ class TestDataCleaner(unittest.TestCase):
         - Verificar que en el DataFrame resultante los valores de "name" no tienen espacios al inicio/final (usar self.assertEqual para comparar valores específicos como strings individuales - unittest es suficiente)
         - Verificar que las columnas no especificadas (ej: "city") permanecen sin cambios (si comparas Series completas, usar pandas.testing.assert_series_equal() ya que maneja mejor los índices y tipos de Pandas; si comparas valores individuales, self.assertEqual es suficiente)
         """
+        cleaner = DataCleaner()
+        df = make_sample_df()
+        original_df_copy = df.copy() # Hacer una copia para comprobar la no modificación del original
+
+        result_df = cleaner.trim_strings(df, ["name"])
+
+        # Verifique que los valores 'nombre' en result_df estén recortados
+        self.assertEqual(result_df["name"].iloc[0], "Alice")
+        self.assertEqual(result_df["name"].iloc[1], "Bob")
+        self.assertEqual(result_df["name"].iloc[3], "Carol")
+        
+        # Verifique que el DataFrame original no haya sido modificado
+        pdt.assert_frame_equal(df, original_df_copy) # Esto verifica si el df original fue modificado
+
+        # Verifique que las demás columnas ('edad', 'ciudad') permanezcan sin cambios en result_df
+        pdt.assert_series_equal(result_df["age"], original_df_copy["age"], check_dtype=False)
+        pdt.assert_series_equal(result_df["city"], original_df_copy["city"])
+
 
     def test_trim_strings_raises_typeerror_for_non_string_column(self):
         """Test que verifica que el método trim_strings lanza un TypeError cuando
