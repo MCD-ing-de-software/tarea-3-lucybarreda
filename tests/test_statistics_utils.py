@@ -22,6 +22,11 @@ class TestStatisticsUtils(unittest.TestCase):
         # Valores esperados para media móvil con window=3
         expected = np.array([2.0, 3.0, 4.0])
         
+        print(f"Original sequence: {values}")
+        print(f"Window size: {window_size}")
+        print(f"Calculated Moving Average (Result): {result}")
+        print(f"Expected Moving Average:            {expected}")
+
         # Usar numpy.testing.assert_allclose() para comparar arrays de NumPy
         # Esto maneja correctamente errores de punto flotante con tolerancia
         npt.assert_allclose(result, expected, rtol=1e-7, atol=1e-7)
