@@ -169,7 +169,7 @@ class TestDataCleaner(unittest.TestCase):
         with self.assertRaises(TypeError) as cm:
             cleaner.trim_strings(df, columns=["age"])
         self.assertIn("is not of string dtype and cannot be trimmed.", str(cm.exception))
-        
+
 
     def test_remove_outliers_iqr_removes_extreme_values(self):
         """Test que verifica que el método remove_outliers_iqr elimina correctamente los
@@ -182,6 +182,35 @@ class TestDataCleaner(unittest.TestCase):
         - Verificar que el valor extremo (120) fue eliminado del resultado (usar self.assertNotIn para verificar que 120 no está en los valores de la columna)
         - Verificar que al menos uno de los valores no extremos (25 o 35) permanece en el resultado (usar self.assertIn para verificar que está presente)
         """
+        cleaner = DataCleaner()
+        df = make_sample_df()
+       
+        df['age'] = df['age'].astype(float)
+        
+        result_df = cleaner.remove_outliers_iqr(df, column="age", factor=1.5)
+
+        self.assertNotIn(120.0, result_df["age"].values)
+      
+        self.assertIn(25.0, result_df["age"].values)
+        self.assertIn(35.0, result_df["age"].values)
+
+        df_outliers = pd.DataFrame({'values': [10, 12, 15, 13, 100]})
+        
+        Q1_new = df_outliers['values'].quantile(0.25) # 12.0
+        Q3_new = df_outliers['values'].quantile(0.75) # 15.0
+        IQR_new = Q3_new - Q1_new # 3.0
+        
+        lower_bound_new = Q1_new - 1.5 * IQR_new # 12 - 4.5 = 7.5
+        upper_bound_new = Q3_new + 1.5 * IQR_new # 15 + 4.5 = 19.5
+        
+            
+        result_df_new = cleaner.remove_outliers_iqr(df_outliers, column='values', factor=1.5)
+        self.assertNotIn(100, result_df_new['values'].values)
+        self.assertIn(10, result_df_new['values'].values)
+        self.assertIn(15, result_df_new['values'].values)
+        self.assertEqual(len(result_df_new), 4) 
+
+
 
     def test_remove_outliers_iqr_raises_keyerror_for_missing_column(self):
         """Test que verifica que el método remove_outliers_iqr lanza un KeyError cuando
